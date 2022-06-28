@@ -68,6 +68,11 @@ long sys_mmap_impl(void *addr, size_t length, int prot, int flags, int fd, off_t
         if (length > morecore_top - morecore_base) {
             return -ENOMEM;
         }
+
+        ZF_LOGI(
+            "morecore %p - %p, len %#x, return address: 0x%"PRIxPTR,
+            morecore_base, morecore_top, length, morecore_top-length);
+
         /* Steal from the top */
         morecore_top -= length;
         return morecore_top;
@@ -116,6 +121,8 @@ static void init_morecore_region(void)
         morecore_base = (uintptr_t) morecore_area;
         morecore_top = (uintptr_t) &morecore_area[morecore_size];
     }
+
+    ZF_LOGI("morecore %p - %p (%#zd)", morecore_base, morecore_top, morecore_size);
 }
 
 static long sys_brk_static(va_list ap)
@@ -199,8 +206,16 @@ static long sys_mmap_impl_static(void *addr, size_t length, int prot, int flags,
         if (base < morecore_base) {
             return -ENOMEM;
         }
+        ZF_LOGF_IF(
+            (base % 0x1000) != 0,
+            "morecore %p - %p, len %#zx, return address: %p (not 4 KiB aligned)",
+            (void*)morecore_base, (void*)morecore_top, length, (void*)base);
+
+        ZF_LOGI(
+            "morecore %p - %p, len %#zx, return address: %p",
+            (void*)morecore_base, (void*)morecore_top, length, (void*)base);
+
         morecore_top = base;
-        ZF_LOGF_IF((base % 0x1000) != 0, "return address: 0x%"PRIxPTR" requires alignment: 0x%x ", base, 0x1000);
         return base;
     }
     assert(!"not implemented");
