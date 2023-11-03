@@ -40,6 +40,15 @@ elseif(KernelArchARM)
         src/arch/${KernelArch}/armv/${KernelArmArmV}/event_counters.c
         src/arch/${KernelArch}/cpu/${KernelArmCPU}/event_counters.c
     )
+    target_include_directories(
+        sel4bench
+        PUBLIC
+            "arch_include/${KernelArch}/armv/${KernelArmArmV}"
+            "arch_include/${KernelArch}/cpu/${KernelArmCPU}"
+    )
+    if(KernelArchArmV7ve)
+        target_include_directories(sel4bench PUBLIC "arch_include/${KernelArch}/armv/armv7-a")
+    endif()
 elseif(KernelArchRiscV)
     # empty
 else()
@@ -48,14 +57,7 @@ endif()
 
 target_include_directories(
     sel4bench
-    PUBLIC
-        include
-        "arch_include/${KernelArch}/armv/${KernelArmArmV}"
-        "arch_include/${KernelArch}/cpu/${KernelArmCPU}"
-        "sel4_arch_include/${KernelSel4Arch}"
-        "arch_include/${KernelArch}"
+    PUBLIC "sel4_arch_include/${KernelSel4Arch}" "arch_include/${KernelArch}" "include"
 )
-if(KernelArmArmV STREQUAL "armv7ve")
-    target_include_directories(sel4bench PUBLIC "arch_include/${KernelArch}/armv/armv7-a")
-endif()
+
 target_link_libraries(sel4bench muslc sel4 utils sel4_autoconf)
