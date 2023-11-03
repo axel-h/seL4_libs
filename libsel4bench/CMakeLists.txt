@@ -28,7 +28,6 @@ target_include_directories(
         "arch_include/${KernelArch}/cpu/${KernelArmCPU}"
         "sel4_arch_include/${KernelSel4Arch}"
         "arch_include/${KernelArch}"
-        src
 )
 if(KernelArmArmV STREQUAL "armv7ve")
     target_include_directories(sel4bench PUBLIC "arch_include/${KernelArch}/armv/armv7-a")
