@@ -8,18 +8,32 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(libsel4bench C)
 
-file(
-    GLOB
-        deps
-        src/*.c
-        src/arch/${KernelArch}/*.c
-        src/arch/${KernelArch}/armv/${KernelArmArmV}/*.c
-        src/arch/${KernelArch}/cpu/${KernelArmCPU}/*.c
+add_library(sel4bench EXCLUDE_FROM_ALL)
+
+target_sources(
+    sel4bench
+    PRIVATE
+    src/event_counters.c
+    src/kernel_logging.c
+    src/logging.c
+    src/arch/${KernelArch}/event_counters.c
 )
 
-list(SORT deps)
+if(KernelArchX86)
+    # empty
+elseif(KernelArchARM)
+    target_sources(
+        sel4bench
+        PRIVATE
+        src/arch/${KernelArch}/armv/${KernelArmArmV}/event_counters.c
+        src/arch/${KernelArch}/cpu/${KernelArmCPU}/event_counters.c
+    )
+elseif(KernelArchRiscV)
+    # empty
+else()
+    message(FATAL_ERROR "Unsupported KernelArch '${KernelArch}'")
+endif()
 
-add_library(sel4bench EXCLUDE_FROM_ALL ${deps})
 target_include_directories(
     sel4bench
     PUBLIC
