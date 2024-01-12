@@ -67,6 +67,7 @@ static void *__map_device_page(void *cookie, uintptr_t paddr, size_t size,
     if (0 != device_cap) {
         /* we only support a single page for the serial device. */
         abort();
+        UNREACHABLE();
     }
 
     vka_object_t dest;
@@ -75,6 +76,7 @@ static void *__map_device_page(void *cookie, uintptr_t paddr, size_t size,
     if (err) {
         ZF_LOGE("Failed to get cap for serial device frame");
         abort();
+        UNREACHABLE();
     }
 
     device_cap = dest.cptr;
@@ -85,6 +87,7 @@ static void *__map_device_page(void *cookie, uintptr_t paddr, size_t size,
         if (!vaddr) {
             ZF_LOGE("Failed to map serial device");
             abort();
+            UNREACHABLE();
         }
         return vaddr;
     }
@@ -100,6 +103,7 @@ static void *__map_device_page(void *cookie, uintptr_t paddr, size_t size,
         if (err) {
             ZF_LOGE("Failed to map serial device in failsafe mode");
             abort();
+            UNREACHABLE();
         }
         return (void *)vaddr;
     }
