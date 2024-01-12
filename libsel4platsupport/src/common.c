@@ -228,7 +228,7 @@ int platsupport_serial_setup_simple(
         return 0;
     }
     if (setup_status != NOT_INITIALIZED) {
-        printf("Trying to initialise a partially initialised serial. Current setup status is %d\n", setup_status);
+        ZF_LOGE("Trying to initialise a partially initialised serial. Current setup status is %d\n", setup_status);
         assert(!"You cannot recover");
         return -1;
     }
