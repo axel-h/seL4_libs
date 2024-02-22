@@ -47,9 +47,12 @@ typedef struct {
     enum serial_setup_status setup_status;
 #ifndef USE_DEBUG_PUTCHAR
     seL4_CPtr device_cap;
+    ps_io_ops_t io_ops;
     vspace_t *vspace;
-    simple_t *simple;
     vka_t *vka;
+    /* To keep failsafe setup we need actual memory for a simple and a vka */
+    simple_t simple_mem;
+    vka_t vka_mem;
 #endif /* not USE_DEBUG_PUTCHAR */
 } ctx_t;
 
@@ -59,10 +62,6 @@ typedef struct {
 static ctx_t ctx = {
     .setup_status = NOT_INITIALIZED
 };
-
-/* To keep failsafe setup we need actual memory for a simple and a vka */
-static simple_t _simple_mem;
-static vka_t _vka_mem;
 
 extern char __executable_start[];
 
@@ -121,14 +120,19 @@ static void *__map_device_page(void *cookie, uintptr_t paddr, size_t size,
     abort();
 }
 
-static ps_io_ops_t io_ops = {
-    .io_mapper = {
-        .io_map_fn = &__map_device_page,
-        .io_unmap_fn = NULL,
-    },
-};
+static int setup_io_ops(
+    simple_t *simple __attribute__((unused)),
+    vka_t *vka __attribute__((unused)))
+{
+    ctx.io_ops.io_mapper.io_map_fn = &__map_device_page;
 
-#endif /* !USE_DEBUG_PUTCHAR */
+#ifdef CONFIG_ARCH_X86
+    sel4platsupport_get_io_port_ops(&ctx.io_ops.io_port_ops, simple, vka);
+#endif
+    return platsupport_serial_setup_io_ops(&ctx.io_ops);
+}
+
+#endif /* not USE_DEBUG_PUTCHAR */
 
 /*
  * This function is designed to be called when creating a new cspace/vspace,
@@ -175,20 +179,26 @@ int platsupport_serial_setup_bootinfo_failsafe(void)
     if (ctx.setup_status == SETUP_COMPLETE) {
         return 0;
     }
-    memset(&_simple_mem, 0, sizeof(simple_t));
-    memset(&_vka_mem, 0, sizeof(vka_t));
+
 #ifdef USE_DEBUG_PUTCHAR
     /* only support putchar on a debug kernel */
     ctx.setup_status = SETUP_COMPLETE;
 #else /* not USE_DEBUG_PUTCHAR */
     ctx.setup_status = START_FAILSAFE_SETUP;
-    simple_default_init_bootinfo(&_simple_mem, platsupport_get_bootinfo());
-    ctx.vka = &_vka_mem;
-    simple_make_vka(&_simple_mem, ctx.vka);
-#ifdef CONFIG_ARCH_X86
-    sel4platsupport_get_io_port_ops(&io_ops.io_port_ops, &_simple_mem, ctx.vka);
-#endif
-    err = platsupport_serial_setup_io_ops(&io_ops);
+
+    simple_t *simple = &(ctx.simple_mem);
+    memset(simple, 0, sizeof(*simple));
+
+    simple_default_init_bootinfo(simple, platsupport_get_bootinfo());
+
+    vka_t *vka = &(ctx.vka_mem);
+    memset(vka, 0, sizeof(*vka));
+    simple_make_vka(simple, vka);
+
+    ctx.vspace = NULL;
+    ctx.vka = vka;
+
+    err = setup_io_ops(simple, vka);
 #endif /* [not] USE_DEBUG_PUTCHAR */
     return err;
 }
@@ -217,17 +227,8 @@ int platsupport_serial_setup_simple(
     /* start setup */
     ctx.setup_status = START_REGULAR_SETUP;
     ctx.vspace = vspace;
-    ctx.simple = simple;
     ctx.vka = vka;
-#ifdef CONFIG_ARCH_X86
-    sel4platsupport_get_io_port_ops(&io_ops.io_port_ops, ctx.simple, ctx.vka);
-#endif
-    err = platsupport_serial_setup_io_ops(&io_ops);
-    /* setup done. We still need vka in platsupport_undo_serial_setup(), the
-     * rest can be cleared
-     */
-    ctx.vspace = NULL;
-    ctx.simple = NULL;
+    err = setup_io_ops(simple, vka); /* uses ctx.vka */
 #endif /* [not] USE_DEBUG_PUTCHAR */
     return err;
 }
