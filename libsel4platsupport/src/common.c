@@ -136,8 +136,8 @@ void platsupport_undo_serial_setup(void)
         vka_cnode_delete(&path);
         vka_cspace_free(vka, device_cap);
         device_cap = 0;
-        vka = NULL;
     }
+    vka = NULL;
 }
 
 /* Initialise serial input interrupt. */
