@@ -189,14 +189,17 @@ int platsupport_serial_setup_simple(
     vka_t *_vka __attribute__((unused)))
 {
     int err = 0;
-    if (setup_status == SETUP_COMPLETE) {
+    switch (setup_status) {
+    case SETUP_COMPLETE:
         return 0;
-    }
-    if (setup_status != NOT_INITIALIZED) {
+    case NOT_INITIALIZED:
+        break; /* continue below */
+    default:
         ZF_LOGE("Trying to initialise a partially initialised serial. Current setup status is %d\n", setup_status);
         assert(!"You cannot recover");
         return -1;
     }
+
 #ifdef USE_DEBUG_PUTCHAR
     /* only support putchar on a debug kernel */
     setup_status = SETUP_COMPLETE;
