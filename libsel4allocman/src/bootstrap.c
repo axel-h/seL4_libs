@@ -1119,15 +1119,14 @@ int allocman_add_simple_untypeds_with_regions(allocman_t *alloc, simple_t *simpl
         uintptr_t paddr;
         bool device;
         cspacepath_t path = allocman_cspace_make_path(alloc, simple_get_nth_untyped(simple, i, &size_bits, &paddr, &device));
-        int dev_type = device ? ALLOCMAN_UT_DEV : ALLOCMAN_UT_KERNEL;
-        // If it is regular UT memory, then we add cap and move on.
-        if (dev_type == ALLOCMAN_UT_KERNEL) {
-            error = allocman_utspace_add_uts(alloc, 1, &path, &size_bits, &paddr, dev_type);
-            ZF_LOGF_IF(error, "Could not add kernel untyped.");
-        } else {
-            // Otherwise we are Device untyped.
+        if (device) {
+            // Separates device RAM memory into separate untyped caps
             error = handle_device_untyped_cap(state, paddr, size_bits, &path, alloc);
-            ZF_LOGF_IF(error, "bootstrap_arch_handle_device_untyped_cap failed.");
+            ZF_LOGF_IF(error, "handle_device_untyped_cap failed (%d).", error);
+        } else {
+            // for regular UT memory we add cap
+            error = allocman_utspace_add_uts(alloc, 1, &path, &size_bits, &paddr, ALLOCMAN_UT_KERNEL);
+            ZF_LOGF_IF(error, "Could not add kernel untyped (%d).", error);
         }
     }
     if (state) {
