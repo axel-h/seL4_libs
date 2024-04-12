@@ -233,7 +233,14 @@ static int bootstrap_add_untypeds_from_simple(bootstrap_info_t *bs, simple_t *si
     if (!bs->have_boot_cspace || (bs->uts && !bs->uts_in_current_cspace)) {
         return 1;
     }
-    for (i = 0; i < simple_get_untyped_count(simple); i++) {
+
+    int cnt = simple_get_untyped_count(simple);
+    if (cnt < 0) {
+        ZF_LOGW("Could not get untyped count (%d)", cnt);
+        return 1;
+    }
+
+    for (i = 0; i < cnt; i++) {
         size_t size_bits;
         uintptr_t paddr;
         bool device;
@@ -1112,7 +1119,11 @@ int allocman_add_simple_untypeds_with_regions(allocman_t *alloc, simple_t *simpl
     ZF_LOGF_IF(error, "bootstrap_prepare_handle_device_untyped_cap Failed");
 
     size_t i;
-    size_t total_untyped = simple_get_untyped_count(simple);
+    int total_untyped = simple_get_untyped_count(simple);
+    if (total_untyped < 0) {
+        ZF_LOGW("Could not get untyped count (%d)", total_untyped);
+        return 0; /* don't report an error, just do nothing */
+    }
 
     for(i = 0; i < total_untyped; i++) {
         size_t size_bits;
