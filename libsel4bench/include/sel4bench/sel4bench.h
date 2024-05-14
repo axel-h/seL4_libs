@@ -75,13 +75,13 @@ static_assert(ARRAY_SIZE(GENERIC_EVENTS) == ARRAY_SIZE(GENERIC_EVENT_NAMES),
  * Starts the cycle counter, which is guaranteed to run until
  * `sel4bench_destroy()` is called.
  */
-static UNUSED void sel4bench_init();
+static void sel4bench_init();
 
 /**
  * Tear down the sel4bench library.  Nothing else is guaranteed to work, and may
  * produce strange failures, after you do this.
  */
-static UNUSED void sel4bench_destroy();
+static void sel4bench_destroy();
 
 /**
  * Query the cycle counter.  If said counter needs starting, `sel4bench_init()`
@@ -92,7 +92,7 @@ static UNUSED void sel4bench_destroy();
  *
  * @return current cycle count
  */
-static UNUSED ccnt_t sel4bench_get_cycle_count();
+static ccnt_t sel4bench_get_cycle_count();
 
 /**
  * Query how many performance counters are supported on this CPU, excluding the
@@ -104,7 +104,7 @@ static UNUSED ccnt_t sel4bench_get_cycle_count();
 
  * @return quantity of counters on this CPU
  */
-static UNUSED seL4_Word sel4bench_get_num_counters();
+static seL4_Word sel4bench_get_num_counters();
 
 /**
  * Query the description of a counter.
@@ -123,7 +123,7 @@ const char *sel4bench_get_counter_description(counter_t counter);
  *
  * @return counter value
  */
-static UNUSED ccnt_t sel4bench_get_counter(counter_t counter);
+static ccnt_t sel4bench_get_counter(counter_t counter);
 
 /**
  * Query the value of a set of counters.
@@ -138,8 +138,8 @@ static UNUSED ccnt_t sel4bench_get_counter(counter_t counter);
  *
  * @return current cycle count as in `sel4bench_get_cycle_count()`
  */
-static UNUSED ccnt_t sel4bench_get_counters(counter_bitfield_t counters,
-                                            ccnt_t *values);
+static ccnt_t sel4bench_get_counters(counter_bitfield_t counters,
+                                     ccnt_t *values);
 
 /**
  * Assign a counter to track a specific event.  Events are processor-specific,
@@ -148,14 +148,14 @@ static UNUSED ccnt_t sel4bench_get_counters(counter_bitfield_t counters,
  * @param counter counter to configure
  * @param event   event to track
  */
-static UNUSED void sel4bench_set_count_event(counter_t counter, event_id_t id);
+static void sel4bench_set_count_event(counter_t counter, event_id_t id);
 
 /**
  * Start counting events on a set of performance counters.
  *
  * @param counters bitfield indicating which counter(s) to start
  */
-static UNUSED void sel4bench_start_counters(counter_bitfield_t counters);
+static void sel4bench_start_counters(counter_bitfield_t counters);
 
 /**
  * Stop counting events on a set of performance counters.
@@ -164,14 +164,14 @@ static UNUSED void sel4bench_start_counters(counter_bitfield_t counters);
  *
  * @param counters bitfield indicating which counter(s) to stop
  */
-static UNUSED void sel4bench_stop_counters(counter_bitfield_t counters);
+static void sel4bench_stop_counters(counter_bitfield_t counters);
 
 /**
  * Reset all performance counters to zero.  Note that the cycle counter is not a
  * performance counter, and is not reset.
  *
  */
-static UNUSED void sel4bench_reset_counters(void);
+static void sel4bench_reset_counters(void);
 
 /**
  * Query the number of benchmark loops required to read a given number of

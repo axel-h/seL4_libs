@@ -86,13 +86,13 @@ static inline void sel4bench_private_deinit(void* data)
 #define SEL4BENCH_ARMV8A_PMCR_RESET_CCNT BIT(2)
 #define SEL4BENCH_ARMV8A_PMCR_DIV64      BIT(3) /* Should CCNT be divided by 64? */
 
-static FASTFN void sel4bench_private_write_pmcr(uint32_t val)
+static FASTFN void sel4bench_private_write_pmcr(seL4_Word val)
 {
     PMU_WRITE(PMCR, val);
 }
-static FASTFN uint32_t sel4bench_private_read_pmcr(void)
+static FASTFN seL4_Word sel4bench_private_read_pmcr(void)
 {
-    uint32_t val;
+    seL4_Word val;
     PMU_READ(PMCR, val);
     return val;
 }
@@ -104,14 +104,14 @@ static FASTFN uint32_t sel4bench_private_read_pmcr(void)
  * PMEVCNTR<x>. Reading this register shows which counters are enabled.
  *
  */
-static FASTFN void sel4bench_private_write_cntens(uint32_t mask)
+static FASTFN void sel4bench_private_write_cntens(seL4_Word mask)
 {
     PMU_WRITE(PMCNTENSET, mask);
 }
 
-static FASTFN uint32_t sel4bench_private_read_cntens(void)
+static FASTFN seL4_Word sel4bench_private_read_cntens(void)
 {
-    uint32_t mask;
+    seL4_Word mask;
     PMU_READ(PMCNTENSET, mask);
     return mask;
 }
@@ -120,7 +120,7 @@ static FASTFN uint32_t sel4bench_private_read_cntens(void)
  * Disables the Cycle Count Register, PMCCNTR_EL0, and any implemented event counters
  * PMEVCNTR<x>. Reading this register shows which counters are enabled.
  */
-static FASTFN void sel4bench_private_write_cntenc(uint32_t mask)
+static FASTFN void sel4bench_private_write_cntenc(seL4_Word mask)
 {
     PMU_WRITE(PMCNTENCLR, mask);
 }
@@ -129,14 +129,14 @@ static FASTFN void sel4bench_private_write_cntenc(uint32_t mask)
  * Reads or writes the value of the selected event counter, PMEVCNTR<n>_EL0.
  * PMSELR_EL0.SEL determines which event counter is selected.
  */
-static FASTFN uint32_t sel4bench_private_read_pmcnt(void)
+static FASTFN seL4_Word sel4bench_private_read_pmcnt(void)
 {
-    uint32_t val;
+    seL4_Word val;
     PMU_READ(PMXEVCNTR, val);
     return val;
 }
 
-static FASTFN void sel4bench_private_write_pmcnt(uint32_t val)
+static FASTFN void sel4bench_private_write_pmcnt(seL4_Word val)
 {
     PMU_WRITE(PMXEVCNTR, val);
 }
@@ -144,7 +144,7 @@ static FASTFN void sel4bench_private_write_pmcnt(uint32_t val)
 /*
  * Selects the current event counter PMEVCNTR<x> or the cycle counter, CCNT
  */
-static FASTFN void sel4bench_private_write_pmnxsel(uint32_t val)
+static FASTFN void sel4bench_private_write_pmnxsel(seL4_Word val)
 {
     PMU_WRITE(PMSELR, val);
 }
@@ -153,15 +153,15 @@ static FASTFN void sel4bench_private_write_pmnxsel(uint32_t val)
  * When PMSELR_EL0.SEL selects an event counter, this accesses a PMEVTYPER<n>_EL0
  * register. When PMSELR_EL0.SEL selects the cycle counter, this accesses PMCCFILTR_EL0.
  */
-static FASTFN uint32_t sel4bench_private_read_evtsel(void)
+static FASTFN seL4_Word sel4bench_private_read_evtsel(void)
 {
 
-    uint32_t val;
+    seL4_Word val;
     PMU_READ(PMXEVTYPER, val);
     return val;
 }
 
-static FASTFN void sel4bench_private_write_evtsel(uint32_t val)
+static FASTFN void sel4bench_private_write_evtsel(seL4_Word val)
 {
     PMU_WRITE(PMXEVTYPER, val);
 }
