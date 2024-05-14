@@ -227,13 +227,19 @@ int bootstrap_add_untypeds_from_bootinfo(bootstrap_info_t *bs, seL4_BootInfo *bi
 
 static int bootstrap_add_untypeds_from_simple(bootstrap_info_t *bs, simple_t *simple) {
     int error;
-    int i;
     /* if we do not have a boot cspace, or we have added some uts that aren't in the
      * current space then just bail */
     if (!bs->have_boot_cspace || (bs->uts && !bs->uts_in_current_cspace)) {
         return 1;
     }
-    for (i = 0; i < simple_get_untyped_count(simple); i++) {
+
+    int cnt = simple_get_untyped_count(simple);
+    if (cnt < 0) {
+        ZF_LOGW("Could not get untyped count (%d)", cnt);
+        return 1;
+    }
+
+    for (int i = 0; i < cnt; i++) {
         size_t size_bits;
         uintptr_t paddr;
         bool device;
@@ -1005,10 +1011,7 @@ static int handle_device_untyped_cap(add_untypeds_state_t *state, uintptr_t padd
     bool cap_tainted = false;
     int error;
     uintptr_t ut_end = paddr + BIT(size_bits);
-    int num_regions = 0;
-    if (state != NULL) {
-        num_regions = state->num_regions;
-    }
+    int num_regions = state ? state->num_regions : 0;
     for (int i = 0; i < num_regions; i++) {
         pmem_region_t *region = &state->regions[i];
         uint64_t region_end = region->base_addr + region->length;
@@ -1111,23 +1114,25 @@ int allocman_add_simple_untypeds_with_regions(allocman_t *alloc, simple_t *simpl
     int error = prepare_handle_device_untyped_cap(alloc, simple, &state, num_regions, region_list);
     ZF_LOGF_IF(error, "bootstrap_prepare_handle_device_untyped_cap Failed");
 
-    size_t i;
-    size_t total_untyped = simple_get_untyped_count(simple);
+    int total_untyped = simple_get_untyped_count(simple);
+    if (total_untyped < 0) {
+        ZF_LOGW("Could not get untyped count (%d)", total_untyped);
+        return 0; /* don't report an error, just do nothing */
+    }
 
-    for(i = 0; i < total_untyped; i++) {
+    for(int i = 0; i < total_untyped; i++) {
         size_t size_bits;
         uintptr_t paddr;
         bool device;
         cspacepath_t path = allocman_cspace_make_path(alloc, simple_get_nth_untyped(simple, i, &size_bits, &paddr, &device));
-        int dev_type = device ? ALLOCMAN_UT_DEV : ALLOCMAN_UT_KERNEL;
-        // If it is regular UT memory, then we add cap and move on.
-        if (dev_type == ALLOCMAN_UT_KERNEL) {
-            error = allocman_utspace_add_uts(alloc, 1, &path, &size_bits, &paddr, dev_type);
-            ZF_LOGF_IF(error, "Could not add kernel untyped.");
-        } else {
-            // Otherwise we are Device untyped.
+        if (device) {
+            // Separates device RAM memory into separate untyped caps
             error = handle_device_untyped_cap(state, paddr, size_bits, &path, alloc);
-            ZF_LOGF_IF(error, "bootstrap_arch_handle_device_untyped_cap failed.");
+            ZF_LOGF_IF(error, "handle_device_untyped_cap failed (%d).", error);
+        } else {
+            // for regular UT memory we add cap
+            error = allocman_utspace_add_uts(alloc, 1, &path, &size_bits, &paddr, ALLOCMAN_UT_KERNEL);
+            ZF_LOGF_IF(error, "Could not add kernel untyped (%d).", error);
         }
     }
     if (state) {
