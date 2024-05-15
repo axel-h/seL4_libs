@@ -33,7 +33,7 @@ int _utspace_twinkle_add_uts(struct allocman *alloc, void *_twinkle, size_t num,
 seL4_Word _utspace_twinkle_alloc(struct allocman *alloc, void *_twinkle, size_t size_bits, seL4_Word type, const cspacepath_t *slot, uintptr_t paddr, bool canBeDev, int *error);
 void _utspace_twinkle_free(struct allocman *alloc, void *_twinkle, seL4_Word cookie, size_t size_bits);
 
-static inline uintptr_t _utspace_twinkle_paddr(void *_twinkle, seL4_Word cookie, size_t size_bits) {
+static inline uintptr_t _utspace_twinkle_paddr(UNUSED void *_twinkle, UNUSED seL4_Word cookie, UNUSED size_t size_bits) {
     assert(!"not implemented");
     return ALLOCMAN_NO_PADDR;
 }
